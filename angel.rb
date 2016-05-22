@@ -1,4 +1,5 @@
 require 'optparse'
+require 'yaml'
 
 require_relative 'helper.rb'
 
@@ -27,6 +28,15 @@ end
 
 parser.parse!
 
+unless File.exist?('config.yml')
+  print "config.yml file not found!\n"\
+      + "Please, rename to file name 'config.example.yaml' to 'config.yaml' and edit that file by yourself."
+  exit
+end
+
+config = YAML.load_file('config.yml')
+ACCESS_TOKEN = config['angel-co']['access-token']
+
 if options[:soughtMarketTagName].nil?
   print 'Enter market tag:'
   options[:soughtMarketTagName] = gets.chomp
@@ -37,7 +47,6 @@ if options[:soughtMarketTagName].nil?
 end
 
 market_tag_name = options[:soughtMarketTagName]
-ACCESS_TOKEN = 'YOUR ACCESS TOKEN'.freeze # edit this line for yourself!
 
 search_results = query("https://api.angel.co/1/search?query=#{market_tag_name}&type=MarketTag", ACCESS_TOKEN)
 

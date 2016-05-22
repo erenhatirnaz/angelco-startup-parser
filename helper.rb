@@ -12,6 +12,11 @@ def query(query_url, access_token)
   http.verify_mode = OpenSSL::SSL::VERIFY_NONE
   response = http.request(req)
 
+  if response.code.to_i == 401
+    print 'This access token is invalid or has been revoked by the user.'
+    exit
+  end
+
   JSON.parse(response.body, symbolize_names: true)
 end
 
