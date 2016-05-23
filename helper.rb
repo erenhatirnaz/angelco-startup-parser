@@ -13,7 +13,7 @@ def query(query_url, access_token)
   response = http.request(req)
 
   if response.code.to_i == 401
-    print 'This access token is invalid or has been revoked by the user.'
+    print '[ERR] This access token is invalid or has been revoked by the user.'.on_red
     exit
   end
 
@@ -34,16 +34,16 @@ def exist_market_tag_id(needle, list)
 end
 
 def select_marget_tag(search_results)
-  print "Founded market tags:\n"
+  print "Founded market tags:\n".magenta
 
   search_results.each do |result|
-    print "#{result[:id]})- #{result[:name]}\n"
+    print result[:id].to_s.light_red + "\t)- #{result[:name]}\n".yellow
   end
 
-  print "\n > Select one market tag id:"
+  print "\n> Select one market tag id: ".light_blue
   market_tag_id = gets.chomp
   if market_tag_id.empty? || !exist_market_tag_id(market_tag_id, search_results)
-    print 'Please select valid market tag id!'
+    print '[ERR] Please select valid market tag id!'.on_red
     exit
   end
 
