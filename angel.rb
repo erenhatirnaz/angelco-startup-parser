@@ -2,6 +2,7 @@ require 'optparse'
 require 'yaml'
 
 require 'colorize'
+require 'ruby-progressbar'
 
 require_relative 'helper.rb'
 
@@ -69,6 +70,8 @@ market_startups = query("https://api.angel.co/1/tags/#{selected_market_tag_id}/s
 
 last_page = market_startups[:last_page].to_i
 
+progressbar = ProgressBar.create(format: '%a <%B> %p%% %t', total: last_page)
+
 total_startup_count = 0
 
 last_page.times do |current_page|
@@ -92,8 +95,7 @@ last_page.times do |current_page|
     total_startup_count += 1
   end
 
-  print "Page #{current_page + 1} / #{last_page} finished!\r"
-  $stdout.flush
+  progressbar.increment
 end
 
 output_file.close
