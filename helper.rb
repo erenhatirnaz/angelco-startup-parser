@@ -1,6 +1,6 @@
-require 'net/https'
 require 'uri'
 require 'json'
+require 'net/https'
 
 def query(query_url, access_token)
   query_url += (query_url.include?('?') ? '&' : '?') + "access_token=#{access_token}"
@@ -20,12 +20,12 @@ def query(query_url, access_token)
   JSON.parse(response.body, symbolize_names: true)
 end
 
-def exist_market_tag_id(needle, list)
-  result = false
+def find_market_tag(needle, list)
+  result = nil
 
   list.each do |item|
     if item[:id].to_i == needle.to_i
-      result = true
+      result = item
       break
     end
   end
@@ -41,11 +41,12 @@ def select_marget_tag(search_results)
   end
 
   print "\n> Select one market tag id: ".light_blue
-  market_tag_id = gets.chomp
-  if market_tag_id.empty? || !exist_market_tag_id(market_tag_id, search_results)
+  received_market_tag_id = gets.chomp
+  market_tag = find_market_tag(received_market_tag_id, search_results)
+  if received_market_tag_id.empty? || market_tag.nil?
     print '[ERR] Please select valid market tag id!'.on_red
     exit
   end
 
-  market_tag_id
+  market_tag
 end

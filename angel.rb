@@ -1,5 +1,5 @@
-require 'optparse'
 require 'yaml'
+require 'optparse'
 
 require 'colorize'
 require 'ruby-progressbar'
@@ -59,14 +59,21 @@ if search_results.empty?
   exit
 end
 
-selected_market_tag_id = search_results.count > 1 ? select_marget_tag(search_results) : search_results[0][:id]
+selected_market_tag = search_results.count > 1 ? select_marget_tag(search_results) : search_results[0]
 
-output_file_name = "#{market_tag_name.tr(' ', '-')}-#{rand(1000)}.csv"
+print '> Are you want include this market tag into database?(y/N): '.light_blue
+include_main_market_tag = gets.chomp.downcase
+include_main_market_tag = (include_main_market_tag == 'yes' || include_main_market_tag == 'y') ? true : false
+
+market_tag_id = selected_market_tag[:id].to_i
+market_tag_name = selected_market_tag[:name].strip
+
+output_file_name = "#{market_tag_name.tr(' ', '-')}-#{rand(1000)}.csv".downcase
 output_file = File.new(output_file_name, 'w')
 output_file.puts('from_type, from_name, edge_type, to_type, to_name, weight')
 output_file_total_line = 1
 
-market_startups = query("https://api.angel.co/1/tags/#{selected_market_tag_id}/startups", ACCESS_TOKEN)
+market_startups = query("https://api.angel.co/1/tags/#{market_tag_id}/startups", ACCESS_TOKEN)
 
 last_page = market_startups[:last_page].to_i
 
@@ -75,7 +82,7 @@ progressbar = ProgressBar.create(format: '%a <%B> %p%% %t', total: last_page)
 total_startup_count = 0
 
 last_page.times do |current_page|
-  market_startups = query("https://api.angel.co/1/tags/#{selected_market_tag_id}/startups?page=#{current_page + 1}",
+  market_startups = query("https://api.angel.co/1/tags/#{market_tag_id}/startups?page=#{current_page + 1}",
                           ACCESS_TOKEN)
 
   market_startups[:startups].each do |item|
@@ -83,10 +90,9 @@ last_page.times do |current_page|
     prefix = "Startup,#{item[:name].tr(',', '')},BELONGS_TO"
 
     item[:markets].each do |market|
-      if market[:name].to_s != 'internet of things'
-        output_file.puts("#{prefix},Market,#{market[:name]},#{item[:follower_count]}")
-        output_file_total_line += 1
-      end
+      next if market[:id].to_i == market_tag_id && !include_main_market_tag
+      output_file.puts("#{prefix},Market,#{market[:name]},#{item[:follower_count]}")
+      output_file_total_line += 1
     end
     item[:locations].each do |location|
       output_file.puts("#{prefix},Location,#{location[:name].tr(',', '')},#{item[:follower_count]}")
