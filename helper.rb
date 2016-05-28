@@ -50,3 +50,15 @@ def select_marget_tag(search_results)
 
   market_tag
 end
+
+def generate_database_file_name(market_tag_name)
+  market_tag_name = market_tag_name.tr(' ', '-').downcase
+  database_file_name = nil
+
+  loop do
+    database_file_name = "#{market_tag_name}-#{rand(1000)}.csv"
+    break unless File.exist?(database_file_name)
+  end
+
+  database_file_name
+end

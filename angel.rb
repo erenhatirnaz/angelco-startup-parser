@@ -68,7 +68,7 @@ include_main_market_tag = (include_main_market_tag == 'yes' || include_main_mark
 market_tag_id = selected_market_tag[:id].to_i
 market_tag_name = selected_market_tag[:name].strip
 
-output_file_name = "#{market_tag_name.tr(' ', '-')}-#{rand(1000)}.csv".downcase
+output_file_name = generate_database_file_name(market_tag_name)
 output_file = File.new(output_file_name, 'w')
 output_file.puts('from_type, from_name, edge_type, to_type, to_name, weight')
 output_file_total_line = 1
