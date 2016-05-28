@@ -68,49 +68,57 @@ include_main_market_tag = (include_main_market_tag == 'yes' || include_main_mark
 market_tag_id = selected_market_tag[:id].to_i
 market_tag_name = selected_market_tag[:name].strip
 
-output_file_name = generate_database_file_name(market_tag_name)
-output_file = File.new(output_file_name, 'w')
-output_file.puts('from_type, from_name, edge_type, to_type, to_name, weight')
-output_file_total_line = 1
+database_name = generate_database_file_name(market_tag_name)
+create_and_open_database(database_name)
 
 market_startups = query("https://api.angel.co/1/tags/#{market_tag_id}/startups", ACCESS_TOKEN)
 
 last_page = market_startups[:last_page].to_i
+hidden_startup_count = 0
 
 progressbar = ProgressBar.create(format: '%a <%B> %p%% %t', total: last_page)
-
-total_startup_count = 0
 
 last_page.times do |current_page|
   market_startups = query("https://api.angel.co/1/tags/#{market_tag_id}/startups?page=#{current_page + 1}",
                           ACCESS_TOKEN)
 
   market_startups[:startups].each do |item|
-    next if item[:hidden].to_s == 'true'
-    prefix = "Startup,#{item[:name].tr(',', '')},BELONGS_TO"
+    if item[:hidden].to_s == 'true'
+      hidden_startup_count += 1
+      next
+    end
 
-    item[:markets].each do |market|
-      next if market[:id].to_i == market_tag_id && !include_main_market_tag
-      output_file.puts("#{prefix},Market,#{market[:name]},#{item[:follower_count]}")
-      output_file_total_line += 1
+    next unless Startup.where(name: item[:name]).first.nil?
+
+    startup = Startup.create(name: item[:name],
+                             description: item[:high_concept],
+                             website_url: item[:company_url],
+                             logo_url: item[:logo_url],
+                             reference: item[:angellist_url],
+                             quality: item[:quality].to_i,
+                             follower_count: item[:follower_count].to_i)
+
+    item[:markets].each do |mrkt|
+      next if mrkt[:id].to_i == market_tag_id && !include_main_market_tag
+      market = Market.where(name: mrkt[:display_name]).first || Market.create(name: mrkt[:display_name])
+      startup.add_market(market)
     end
-    item[:locations].each do |location|
-      output_file.puts("#{prefix},Location,#{location[:name].tr(',', '')},#{item[:follower_count]}")
-      output_file_total_line += 1
+
+    item[:locations].each do |lctn|
+      location = Location.where(name: lctn[:display_name]).first || Location.create(name: lctn[:display_name])
+      startup.add_location(location)
     end
-    total_startup_count += 1
   end
 
   progressbar.increment
 end
 
-output_file.close
-
 statistics = []
-statistics[0] = "Total startups\t\t: #{total_startup_count}"
-statistics[1] = "Total line\t\t: #{output_file_total_line}"
-statistics[2] = "Output file name\t: #{output_file_name}"
+statistics[0] = "Total startup\t\t:#{Startup.all.length} (#{hidden_startup_count} hidden startup)"
+statistics[1] = "Total market\t\t:#{Market.all.length}"
+statistics[2] = "Total location\t\t:#{Location.all.length}"
+statistics[3] = "Output database path\t:#{database_name}"
 
-print '-'.cyan * 46 + "\n"
+print '-'.cyan * 97 + "\n"
 print statistics.join("\n").yellow
-print "\n\nCSV file created succesfully!".black.on_green
+print "\n\nDatabase created succesfully!".black.on_green

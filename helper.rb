@@ -1,5 +1,7 @@
 require 'uri'
 require 'json'
+require 'sequel'
+require 'sqlite3'
 require 'net/https'
 
 def query(query_url, access_token)
@@ -56,9 +58,48 @@ def generate_database_file_name(market_tag_name)
   database_file_name = nil
 
   loop do
-    database_file_name = "#{market_tag_name}-#{rand(1000)}.csv"
+    database_file_name = "#{market_tag_name}-#{rand(1000)}.sqlite"
     break unless File.exist?(database_file_name)
   end
 
   database_file_name
+end
+
+def create_and_open_database(database_file_name)
+  db_connection = Sequel.connect("sqlite://#{database_file_name}")
+
+  db_connection.create_table(:locations) do
+    primary_key :id
+    column :name, :text, null: false
+  end
+
+  db_connection.create_table(:markets) do
+    primary_key :id
+    column :name, :text, null: false
+  end
+
+  db_connection.create_table(:startups) do
+    primary_key :id
+    column :name, :text, null: false
+    column :description, :text
+    column :website_url, :text
+    column :logo_url, :text
+    column :reference, :text
+    column :quality, :integer
+    column :follower_count, :integer
+  end
+
+  db_connection.create_table(:locations_startups) do
+    foreign_key :startup_id, :startups, null: false
+    foreign_key :location_id, :locations, null: false
+    primary_key [:startup_id, :location_id]
+  end
+
+  db_connection.create_table(:markets_startups) do
+    foreign_key :startup_id, :startups, null: false
+    foreign_key :market_id, :markets, null: false
+    primary_key [:startup_id, :market_id]
+  end
+
+  Dir['./models/*.rb'].each { |model| require model }
 end
