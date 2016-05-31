@@ -1,6 +1,8 @@
 # Angel.co Startup Parser
-This script parses startups on angel.co by a market tag and creates a csv file
-with that parsed data.
+* `angel.rb`: This script parses startups on angel.co by a market tag and creates a sqlite
+database with that parsed data.
+* `sqlite_to_csv_converter.rb`: This script creates two csv files(one for nodes, one for
+edges) with parsed data by `angel.rb` for graph commons.
 
 # Requirements
 * Ruby >= 2.2.x
@@ -18,12 +20,8 @@ $ bundler install
 $ ruby angel.rb --help
 ```
 
-# Output file template
-```csv
-from_type, from_name, edge_type, to_type, to_name, weight
-Startup,[STARTUP NAME],BELONGS_TO,Market,[MARKET NAME],[FOLLOWER COUNT]
-Startup,[STARTUP NAME],BELONGS_TO,Location,[LOCATION NAME],[FOLLOWER COUNT]
-```
+# Output database schema
+![database schema](db_schema.png)
 
 # License
 Apache 2.0
