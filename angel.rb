@@ -61,15 +61,18 @@ end
 
 selected_market_tag = search_results.count > 1 ? select_marget_tag(search_results) : search_results[0]
 
-print '> Are you want include this market tag into database?(y/N): '.light_blue
+print '> Do you want include this market tag into database?(y/N): '.light_blue
 include_main_market_tag = gets.chomp.downcase
 include_main_market_tag = (include_main_market_tag == 'yes' || include_main_market_tag == 'y') ? true : false
 
 market_tag_id = selected_market_tag[:id].to_i
 market_tag_name = selected_market_tag[:name].strip
 
-database_name = generate_database_file_name(market_tag_name)
-create_and_open_database(database_name)
+database_directory_name = generate_database_directory_name(market_tag_name)
+database_path = "#{database_directory_name}/database.sqlite"
+Dir.mkdir(database_directory_name)
+
+create_and_open_database(database_path)
 
 market_startups = query("https://api.angel.co/1/tags/#{market_tag_id}/startups", ACCESS_TOKEN)
 
@@ -114,11 +117,14 @@ last_page.times do |current_page|
 end
 
 statistics = []
-statistics[0] = "Total startup\t\t:#{Startup.all.length} (#{hidden_startup_count} hidden startup)"
-statistics[1] = "Total market\t\t:#{Market.all.length}"
-statistics[2] = "Total location\t\t:#{Location.all.length}"
-statistics[3] = "Output database path\t:#{database_name}"
+statistics[0] = "Total startups\t\t\t:#{Startup.all.length} (#{hidden_startup_count} hidden startup)"
+statistics[1] = "Total markets\t\t\t:#{Market.all.length}"
+statistics[2] = "Total locations\t\t\t:#{Location.all.length}"
+statistics[3] = "Directory of output database\t:#{database_directory_name}"
 
-print '-'.cyan * 97 + "\n"
+print '-'.cyan * 55 + "\n"
 print statistics.join("\n").yellow
 print "\n\nDatabase created succesfully!".black.on_green
+print "\nIf you want CSV files, run '".black.on_green \
+    + "ruby sqlite_to_csv_converter.rb -d #{database_directory_name}".red.on_white \
+    + "' command.".black.on_green

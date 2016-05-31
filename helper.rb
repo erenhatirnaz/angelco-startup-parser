@@ -53,20 +53,24 @@ def select_marget_tag(search_results)
   market_tag
 end
 
-def generate_database_file_name(market_tag_name)
-  market_tag_name = market_tag_name.tr(' ', '-').downcase
-  database_file_name = nil
-
-  loop do
-    database_file_name = "#{market_tag_name}-#{rand(1000)}.sqlite"
-    break unless File.exist?(database_file_name)
-  end
-
-  database_file_name
+def normalize_string(string)
+  string.tr("’", "'").tr('"', "'")
 end
 
-def create_and_open_database(database_file_name)
-  db_connection = Sequel.connect("sqlite://#{database_file_name}")
+def generate_database_directory_name(market_tag_name)
+  market_tag_name = market_tag_name.tr(' ', '-').downcase
+  database_directory_name = nil
+
+  loop do
+    database_directory_name = "#{market_tag_name}-#{rand(1000)}"
+    break unless File.exist?(database_directory_name)
+  end
+
+  database_directory_name
+end
+
+def create_and_open_database(database_path)
+  db_connection = Sequel.connect("sqlite://#{database_path}")
 
   db_connection.create_table(:locations) do
     primary_key :id
@@ -100,6 +104,12 @@ def create_and_open_database(database_file_name)
     foreign_key :market_id, :markets, null: false
     primary_key [:startup_id, :market_id]
   end
+
+  Dir['./models/*.rb'].each { |model| require model }
+end
+
+def open_database(database_path)
+  Sequel.connect("sqlite://#{database_path}")
 
   Dir['./models/*.rb'].each { |model| require model }
 end
