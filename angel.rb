@@ -4,7 +4,7 @@ require 'optparse'
 require 'colorize'
 require 'ruby-progressbar'
 
-require_relative 'helper.rb'
+require './helper.rb'
 
 options = { soughtMarketTagName: nil }
 
@@ -59,14 +59,14 @@ if search_results.empty?
   exit
 end
 
-selected_market_tag = search_results.count > 1 ? select_marget_tag(search_results) : search_results[0]
+selected_market_tag = search_results.count > 1 ? get_user_choice(search_results, 'Founded markets:') : search_results[0]
 
 print '> Do you want include this market tag into database?(y/N): '.light_blue
 include_main_market_tag = gets.chomp.downcase
 include_main_market_tag = (include_main_market_tag == 'yes' || include_main_market_tag == 'y') ? true : false
 
-market_tag_id = selected_market_tag[:id].to_i
-market_tag_name = selected_market_tag[:name].strip
+market_tag_id = selected_market_tag['id']
+market_tag_name = selected_market_tag['name'].strip
 
 database_directory_name = generate_database_directory_name(market_tag_name)
 database_path = "#{database_directory_name}/database.sqlite"
@@ -76,7 +76,7 @@ create_and_open_database(database_path)
 
 market_startups = query("https://api.angel.co/1/tags/#{market_tag_id}/startups", ACCESS_TOKEN)
 
-last_page = market_startups[:last_page].to_i
+last_page = market_startups['last_page']
 hidden_startup_count = 0
 
 progressbar = ProgressBar.create(format: '%a <%B> %p%% %t', total: last_page)
@@ -85,30 +85,30 @@ last_page.times do |current_page|
   market_startups = query("https://api.angel.co/1/tags/#{market_tag_id}/startups?page=#{current_page + 1}",
                           ACCESS_TOKEN)
 
-  market_startups[:startups].each do |item|
-    if item[:hidden].to_s == 'true'
+  market_startups['startups'].each do |item|
+    if item['hidden']
       hidden_startup_count += 1
       next
     end
 
-    next unless Startup.where(name: item[:name]).first.nil?
+    next unless Startup.where(name: item['name']).first.nil?
 
-    startup = Startup.create(name: item[:name],
-                             description: item[:high_concept],
-                             website_url: item[:company_url],
-                             logo_url: item[:logo_url],
-                             reference: item[:angellist_url],
-                             quality: item[:quality].to_i,
-                             follower_count: item[:follower_count].to_i)
+    startup = Startup.create(name: item['name'],
+                             description: item['high_concept'],
+                             website_url: item['company_url'],
+                             logo_url: item['logo_url'],
+                             reference: item['angellist_url'],
+                             quality: item['quality'],
+                             follower_count: item['follower_count'])
 
-    item[:markets].each do |mrkt|
-      next if mrkt[:id].to_i == market_tag_id && !include_main_market_tag
-      market = Market.where(name: mrkt[:display_name]).first || Market.create(name: mrkt[:display_name])
+    item['markets'].each do |mrkt|
+      next if mrkt['id'] == market_tag_id && !include_main_market_tag
+      market = Market.where(name: mrkt['display_name']).first || Market.create(name: mrkt['display_name'])
       startup.add_market(market)
     end
 
-    item[:locations].each do |lctn|
-      location = Location.where(name: lctn[:display_name]).first || Location.create(name: lctn[:display_name])
+    item['locations'].each do |lctn|
+      location = Location.where(name: lctn['display_name']).first || Location.create(name: lctn['display_name'])
       startup.add_location(location)
     end
   end

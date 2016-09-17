@@ -1,8 +1,9 @@
 require 'uri'
 require 'json'
+require 'net/https'
+
 require 'sequel'
 require 'sqlite3'
-require 'net/https'
 
 def query(query_url, access_token)
   query_url += (query_url.include?('?') ? '&' : '?') + "access_token=#{access_token}"
@@ -19,38 +20,25 @@ def query(query_url, access_token)
     exit
   end
 
-  JSON.parse(response.body, symbolize_names: true)
+  JSON.parse(response.body)
 end
 
-def find_market_tag(needle, list)
-  result = nil
+def get_user_choice(collection, message)
+  print "#{message}\n".magenta
 
-  list.each do |item|
-    if item[:id].to_i == needle.to_i
-      result = item
-      break
-    end
+  collection.each_with_index do |item, index|
+    print((index + 1).to_s.light_red + " )- #{item['name']}\n".yellow)
   end
 
-  result
-end
+  print "\n> Select an item from the list: ".light_blue
 
-def select_marget_tag(search_results)
-  print "Founded market tags:\n".magenta
-
-  search_results.each do |result|
-    print result[:id].to_s.light_red + "\t)- #{result[:name]}\n".yellow
-  end
-
-  print "\n> Select one market tag id: ".light_blue
-  received_market_tag_id = gets.chomp
-  market_tag = find_market_tag(received_market_tag_id, search_results)
-  if received_market_tag_id.empty? || market_tag.nil?
-    print '[ERR] Please select valid market tag id!'.on_red
+  selected_index = gets.chomp.to_i - 1
+  if selected_index < 0 || collection[selected_index].nil?
+    print '[ERR] Please enter a valid item number!'.on_red
     exit
   end
 
-  market_tag
+  collection[selected_index]
 end
 
 def normalize_string(string)

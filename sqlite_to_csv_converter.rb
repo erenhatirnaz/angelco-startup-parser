@@ -2,7 +2,7 @@ require 'optparse'
 
 require 'colorize'
 
-require_relative 'helper.rb'
+require './helper.rb'
 
 options = { databaseDirectory: nil }
 
