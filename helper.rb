@@ -1,6 +1,8 @@
 require 'uri'
 require 'json'
 require 'net/https'
+require 'yaml'
+require 'english'
 
 require 'sequel'
 require 'sqlite3'
@@ -93,7 +95,29 @@ def create_and_open_database(database_path)
     primary_key [:startup_id, :market_id]
   end
 
+  import_views_from_yml_file(db_connection)
+
   Dir['./models/*.rb'].each { |model| require model }
+end
+
+def import_views_from_yml_file(db_connection)
+  views = YAML.load_file('views.yml')
+  views.each do |view|
+    next if (view['name'].nil? || view['name'].empty?) ||
+            (view['query'].nil? || view['query'].empty?)
+    begin
+      db_connection.create_or_replace_view(view['name'].strip, view['query'].strip)
+    rescue Sequel::DatabaseError
+      print "[ERR] There is an error in this query:\n".white.on_red
+      print "\tName :".cyan + " #{view['name']}\n"
+      print "\tQuery:".cyan + " #{view['query'].strip}\n"
+      print "\tError:".cyan + " #{$ERROR_INFO.to_s[23..-1]}\n"
+    end
+  end
+  fail_views_count = views.length - db_connection.views.length
+  print "DB Views -> Total  :#{views.length}\n".yellow + \
+        "\t    Created:#{db_connection.views.length}\n".yellow + \
+        "\t    Fail   :#{fail_views_count}\n".yellow
 end
 
 def open_database(database_path)
