@@ -1,0 +1,38 @@
+-
+    name: total_startups_number_of_markets
+    query: |
+        SELECT m.name, COUNT(s.id) AS total_startup_count,
+               SUM(follower_count) AS total_follower_count_of_startups_in_market
+          FROM markets_startups AS ms
+               INNER JOIN markets AS m
+               ON ms.market_id = m.id
+               
+               INNER JOIN startups AS s
+               ON ms.startup_id = s.id
+         GROUP BY m.name
+         ORDER BY total_startup_count DESC
+-
+    name: total_startups_number_of_locations
+    query: |
+        SELECT l.name AS location_name, COUNT(s.id) AS total_startup_count,
+               SUM(follower_count) AS total_follower_count_of_startups_in_location
+          FROM locations_startups AS ls
+              INNER JOIN locations AS l
+              ON ls.location_id = l.id
+              
+              INNER JOIN startups AS s
+              ON ls.startup_id = s.id
+         GROUP BY l.name
+         ORDER BY total_startup_count DESC
+-
+    name: markets_of_startups_with_high_number_of_followers
+    query: |
+        SELECT s.name, s.follower_count,
+               (SELECT GROUP_CONCAT(m.name, ", ")
+                  FROM markets AS m
+                       INNER JOIN markets_startups AS ms
+                       ON m.id = ms.market_id
+                 WHERE ms.startup_id = s.id
+               ) AS markets
+         FROM startups AS s
+         ORDER BY follower_count DESC

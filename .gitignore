@@ -1,3 +1,5 @@
 **/*.sqlite
+**/*.sqlite-journal
 **/*.csv
 config.yml
+views.yml
