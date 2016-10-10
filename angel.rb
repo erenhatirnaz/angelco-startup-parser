@@ -1,18 +1,22 @@
-require 'optparse'
 require 'yaml'
+require 'optparse'
 
-require_relative 'helper.rb'
+require 'colorize'
+require 'ruby-progressbar'
+
+require './helper.rb'
 
 options = { soughtMarketTagName: nil }
 
 parser = OptionParser.new do |opts|
   banner = []
-  banner[0] = "Script Name\t: Angel.co Startup Parser"
-  banner[1] = "Description\t: This script parses startups on angel.co by a market tag and creates a\n"\
-            + "\t          sqlite database with that parsed data."
-  banner[2] = "Developer\t: Eren Hatirnaz <erenhatirnaz@atinasoft.com>"
-  banner[3] = "Company\t\t: Atinasoft \t<info@atinasoft.com>"
-  banner[4] = '~' * 61
+  banner[0] = "Script Name\t: Angel.co Startup Parser".light_green
+  banner[1] = "Description\t: This script parses startups on angel.co by\n".light_green \
+            + "\t\t  a market tag and creates a sqlite database\n".light_green \
+            + "\t\t  with that parsed data.".light_green
+  banner[2] = "Developer\t: Eren Hatirnaz <erenhatirnaz@atinasoft.com>".light_green
+  banner[3] = "Company\t\t: Atinasoft \t<info@atinasoft.com>".light_green
+  banner[4] = '~'.cyan * 61
   banner[5] = 'Usage: ruby angel.rb -m MARKET_TAG_NAME'
   opts.banner = banner.join("\n")
 
@@ -29,8 +33,8 @@ end
 parser.parse!
 
 unless File.exist?('config.yml')
-  print "config.yml file not found!\n"\
-      + "Please, rename to file name 'config.example.yaml' to 'config.yaml' and edit that file by yourself."
+  print "[ERR] config.yml file not found!\n".on_red\
+      + "Please, rename to file name 'config.example.yaml' to 'config.yaml' and edit that file by yourself.".on_red
   exit
 end
 
@@ -38,10 +42,10 @@ config = YAML.load_file('config.yml')
 ACCESS_TOKEN = config['angel-co']['access-token']
 
 if options[:soughtMarketTagName].nil?
-  print 'Enter market tag:'
+  print '> Enter market tag: '.light_blue
   options[:soughtMarketTagName] = gets.chomp
   if options[:soughtMarketTagName].empty?
-    print 'Market tag cannot be empty!'
+    print '[ERR] Market tag cannot be empty!'.on_red
     exit
   end
 end
@@ -51,52 +55,76 @@ market_tag_name = options[:soughtMarketTagName]
 search_results = query("https://api.angel.co/1/search?query=#{market_tag_name}&type=MarketTag", ACCESS_TOKEN)
 
 if search_results.empty?
-  print "No result for this market tag=#{market_tag_name}"
+  print '[WARN] No result for this market tag='.black.on_yellow + market_tag_name.black.on_white
   exit
 end
 
-selected_market_tag_id = search_results.count > 1 ? select_marget_tag(search_results) : search_results[0][:id]
+selected_market_tag = search_results.count > 1 ? get_user_choice(search_results, 'Founded markets:') : search_results[0]
 
-output_file_name = "#{market_tag_name.tr(' ', '-')}-#{rand(1000)}.csv"
-output_file = File.new(output_file_name, 'w')
-output_file.puts('from_type, from_name, edge_type, to_type, to_name, weight')
-output_file_total_line = 1
+print '> Do you want include this market tag into database?(y/N): '.light_blue
+include_main_market_tag = gets.chomp.downcase
+include_main_market_tag = (include_main_market_tag == 'yes' || include_main_market_tag == 'y') ? true : false
 
-market_startups = query("https://api.angel.co/1/tags/#{selected_market_tag_id}/startups", ACCESS_TOKEN)
+market_tag_id = selected_market_tag['id']
+market_tag_name = selected_market_tag['name'].strip
 
-last_page = market_startups[:last_page].to_i
+database_directory_name = generate_database_directory_name(market_tag_name)
+database_path = "#{database_directory_name}/database.sqlite"
+Dir.mkdir(database_directory_name)
 
-total_startup_count = 0
+create_and_open_database(database_path)
+
+market_startups = query("https://api.angel.co/1/tags/#{market_tag_id}/startups", ACCESS_TOKEN)
+
+last_page = market_startups['last_page']
+hidden_startup_count = 0
+
+progressbar = ProgressBar.create(format: '%a <%B> %p%% %t', total: last_page)
 
 last_page.times do |current_page|
-  market_startups = query("https://api.angel.co/1/tags/#{selected_market_tag_id}/startups?page=#{current_page + 1}",
+  market_startups = query("https://api.angel.co/1/tags/#{market_tag_id}/startups?page=#{current_page + 1}",
                           ACCESS_TOKEN)
 
-  market_startups[:startups].each do |item|
-    next if item[:hidden].to_s == 'true'
-    prefix = "Startup,#{item[:name].tr(',', '')},BELONGS_TO"
+  market_startups['startups'].each do |item|
+    if item['hidden']
+      hidden_startup_count += 1
+      next
+    end
 
-    item[:markets].each do |market|
-      if market[:name].to_s != 'internet of things'
-        output_file.puts("#{prefix},Market,#{market[:name]},#{item[:follower_count]}")
-        output_file_total_line += 1
-      end
+    next unless Startup.where(name: item['name']).first.nil?
+
+    startup = Startup.create(name: item['name'],
+                             description: item['high_concept'],
+                             website_url: item['company_url'],
+                             logo_url: item['logo_url'],
+                             reference: item['angellist_url'],
+                             quality: item['quality'],
+                             follower_count: item['follower_count'])
+
+    item['markets'].each do |mrkt|
+      next if mrkt['id'] == market_tag_id && !include_main_market_tag
+      market = Market.where(name: mrkt['display_name']).first || Market.create(name: mrkt['display_name'])
+      startup.add_market(market)
     end
-    item[:locations].each do |location|
-      output_file.puts("#{prefix},Location,#{location[:name].tr(',', '')},#{item[:follower_count]}")
-      output_file_total_line += 1
+
+    item['locations'].each do |lctn|
+      location = Location.where(name: lctn['display_name']).first || Location.create(name: lctn['display_name'])
+      startup.add_location(location)
     end
-    total_startup_count += 1
   end
 
-  print "Page #{current_page + 1} / #{last_page} finished!\r"
-  $stdout.flush
+  progressbar.increment
 end
 
-output_file.close
+statistics = []
+statistics[0] = "Total startups\t\t\t:#{Startup.all.length} (#{hidden_startup_count} hidden startup)"
+statistics[1] = "Total markets\t\t\t:#{Market.all.length}"
+statistics[2] = "Total locations\t\t\t:#{Location.all.length}"
+statistics[3] = "Directory of output database\t:#{database_directory_name}"
 
-print '-' * 46 + "\n"
-print "Total startups\t\t: #{total_startup_count}\n"
-print "Total line\t\t: #{output_file_total_line}\n"
-print "Output file name\t: #{output_file_name}\n"
-print "Completed!\n"
+print '-'.cyan * 55 + "\n"
+print statistics.join("\n").yellow
+print "\n\nDatabase created succesfully!".black.on_green
+print "\nIf you want CSV files, run '".black.on_green \
+    + "ruby sqlite_to_csv_converter.rb -d #{database_directory_name}".red.on_white \
+    + "' command.".black.on_green
