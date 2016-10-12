@@ -13,9 +13,12 @@ edges) with parsed data by `angel.rb` for graph commons.
 * See also [Gemfile](Gemfile)
 
 # Usage
-First of all, rename to file name `config.example.yaml` to `config.yaml` and
-rename to filename `views.example.yml` to `views.yml` edit those files by
-yourself. After:
+First of all, rename the following file names:
+
+* `config.example.yml` => `config.yml`
+* `views.example.yml` => `views.yml` (*optional, if you want add a new database view(s)* )
+
+and edit those files by yourself. After:
 
 ## Setup
 ```bash
