@@ -63,7 +63,7 @@ selected_market_tag = search_results.count > 1 ? get_user_choice(search_results,
 
 print '> Do you want include this market tag into database?(y/N): '.light_blue
 include_main_market_tag = gets.chomp.downcase
-include_main_market_tag = (include_main_market_tag == 'yes' || include_main_market_tag == 'y') ? true : false
+include_main_market_tag = include_main_market_tag == 'yes' || include_main_market_tag == 'y' ? true : false
 
 market_tag_id = selected_market_tag['id']
 market_tag_name = selected_market_tag['name'].strip
@@ -91,10 +91,12 @@ last_page.times do |current_page|
       next
     end
 
-    next unless Startup.where(name: item['name']).first.nil?
+    next unless Startup.where(name: item['name'].strip).first.nil?
 
-    startup = Startup.create(name: item['name'],
-                             description: item['high_concept'],
+    startup_description = item['high_concept'].strip if item['high_concept']
+
+    startup = Startup.create(name: item['name'].strip,
+                             description: startup_description,
                              website_url: item['company_url'],
                              logo_url: item['logo_url'],
                              reference: item['angellist_url'],
@@ -103,12 +105,14 @@ last_page.times do |current_page|
 
     item['markets'].each do |mrkt|
       next if mrkt['id'] == market_tag_id && !include_main_market_tag
-      market = Market.where(name: mrkt['display_name']).first || Market.create(name: mrkt['display_name'])
+      market_name = mrkt['display_name'].strip
+      market = Market.where(name: market_name).first || Market.create(name: market_name)
       startup.add_market(market)
     end
 
     item['locations'].each do |lctn|
-      location = Location.where(name: lctn['display_name']).first || Location.create(name: lctn['display_name'])
+      location_name = lctn['display_name']
+      location = Location.where(name: location_name).first || Location.create(name: location_name)
       startup.add_location(location)
     end
   end

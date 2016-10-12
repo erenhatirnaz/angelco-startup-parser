@@ -76,10 +76,10 @@ Startup.all.each do |startup|
                 + "#{startup[:reference]},"\
                 + "#{startup[:website_url]},"\
                 + "#{startup[:quality]},"\
-                + "#{startup[:follower_count]},")
+                + startup[:follower_count].to_s)
 end
 
-Market.all.each { |market| nodes_file.puts("Market,\"#{market[:name]}\",") }
+Market.all.each { |market| nodes_file.puts("Market,\"#{market[:name]}\"") }
 Location.all.each { |location| nodes_file.puts("Location,\"#{location[:name]}\"") }
 
 nodes_file.close
@@ -90,8 +90,8 @@ edges_file.puts('FROM NODE TYPE,FROM NODE NAME,EDGE TYPE,TO NODE TYPE,TO NODE NA
 Startup.all.each do |startup|
   prefix = "Startup,\"#{normalize_string(startup[:name].to_s)}\""
 
-  startup.markets.each { |market| edges_file.puts("#{prefix},BELONGS_TO,Market,#{market[:name]},") }
-  startup.locations.each { |location| edges_file.puts("#{prefix},BASED_IN,Location,#{location[:name]},") }
+  startup.markets.each { |market| edges_file.puts("#{prefix},BELONGS_TO,Market,#{market[:name]}") }
+  startup.locations.each { |location| edges_file.puts("#{prefix},BASED_IN,Location,#{location[:name]}") }
 end
 
 edges_file.close
