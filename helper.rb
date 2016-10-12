@@ -44,7 +44,7 @@ def get_user_choice(collection, message)
 end
 
 def normalize_string(string)
-  string.tr("’", "'").tr('"', "'")
+  string.tr("/\u2019/", "/\u0027/").tr("/\u0022/", "/\u0027/")
 end
 
 def generate_database_directory_name(market_tag_name)
@@ -95,13 +95,14 @@ def create_and_open_database(database_path)
     primary_key [:startup_id, :market_id]
   end
 
-  import_views_from_yml_file(db_connection)
+  views_file = File.exist?('views.yml') ? 'views.yml' : 'views.example.yml'
+  import_views_from_yml_file(db_connection, views_file)
 
   Dir['./models/*.rb'].each { |model| require model }
 end
 
-def import_views_from_yml_file(db_connection)
-  views = YAML.load_file('views.yml')
+def import_views_from_yml_file(db_connection, file_name)
+  views = YAML.load_file(file_name)
   views.each do |view|
     next if (view['name'].nil? || view['name'].empty?) ||
             (view['query'].nil? || view['query'].empty?)
