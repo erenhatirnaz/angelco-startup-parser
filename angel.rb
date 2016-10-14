@@ -33,9 +33,8 @@ end
 parser.parse!
 
 unless File.exist?('config.yml')
-  print "[ERR] config.yml file not found!\n".on_red\
+  abort "[ERR] config.yml file not found!\n".on_red\
       + "Please, rename to file name 'config.example.yaml' to 'config.yaml' and edit that file by yourself.".on_red
-  exit
 end
 
 config = YAML.load_file('config.yml')
@@ -45,8 +44,7 @@ if options[:soughtMarketTagName].nil?
   print '> Enter market tag: '.light_blue
   options[:soughtMarketTagName] = gets.chomp
   if options[:soughtMarketTagName].empty?
-    print '[ERR] Market tag cannot be empty!'.on_red
-    exit
+    abort '[ERR] Market tag cannot be empty!'.on_red
   end
 end
 
@@ -55,8 +53,7 @@ market_tag_name = options[:soughtMarketTagName]
 search_results = query("https://api.angel.co/1/search?query=#{market_tag_name}&type=MarketTag", ACCESS_TOKEN)
 
 if search_results.empty?
-  print '[WARN] No result for this market tag='.black.on_yellow + market_tag_name.black.on_white
-  exit
+  abort '[WARN] No result for this market tag='.black.on_yellow + market_tag_name.black.on_white
 end
 
 selected_market_tag = search_results.count > 1 ? get_user_choice(search_results, 'Founded markets:') : search_results[0]
@@ -126,9 +123,9 @@ statistics[1] = "Total markets\t\t\t:#{Market.all.length}"
 statistics[2] = "Total locations\t\t\t:#{Location.all.length}"
 statistics[3] = "Directory of output database\t:#{database_directory_name}"
 
-print '-'.cyan * 55 + "\n"
-print statistics.join("\n").yellow
-print "\n\nDatabase created succesfully!".black.on_green
-print "\nIf you want CSV files, run '".black.on_green \
+puts '-'.cyan * 55
+puts statistics.join("\n").yellow
+puts "\nDatabase created succesfully!".black.on_green
+puts "If you want CSV files, run '".black.on_green \
     + "ruby sqlite_to_csv_converter.rb -d #{database_directory_name}".red.on_white \
     + "' command.".black.on_green

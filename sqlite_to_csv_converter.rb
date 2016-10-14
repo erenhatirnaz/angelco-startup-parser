@@ -35,14 +35,12 @@ if options[:databaseDirectory].nil?
   print '> Enter database directory: '.light_blue
   options[:databaseDirectory] = gets.chomp.downcase
   if options[:databaseDirectory].empty?
-    print '[ERR] Database directory cannot be empty!'.on_red
-    exit
+    abort '[ERR] Database directory cannot be empty!'.on_red
   end
 end
 
 unless File.exist?(options[:databaseDirectory])
-  print '[ERR] Database directory not found!'.on_red
-  exit
+  abort '[ERR] Database directory not found!'.on_red
 end
 
 database_directory_name = options[:databaseDirectory].sub('/', '')
@@ -54,8 +52,8 @@ nodes_file_path = "#{database_directory_name}/nodes.csv"
 edges_file_path = "#{database_directory_name}/edges.csv"
 
 if File.exist?(nodes_file_path) || File.exist?(edges_file_path)
-  print "[WARN] nodes.csv or edges.csv file is already exist!\n".black.on_yellow\
-      + '> Do you want to overwrite these files?(y/N): '.light_blue
+  puts '[WARN] nodes.csv or edges.csv file is already exist!'.black.on_yellow
+  print '> Do you want to overwrite these files?(y/N): '.light_blue
   overwrite = gets.chomp.downcase
   if overwrite == 'y' || overwrite == 'yes'
     File.delete(nodes_file_path)
@@ -101,6 +99,6 @@ statistics[0] = "Total line count of nodes.csv\t:#{IO.readlines(nodes_file).coun
 statistics[1] = "Total line count of edges.csv\t:#{IO.readlines(edges_file).count}"
 statistics[2] = "Directory of output CSV files\t:#{database_directory_name}"
 
-print '-'.cyan * 55 + "\n"
-print statistics.join("\n").yellow
-print "\n\nCSV files created succesfully!".black.on_green
+puts '-'.cyan * 55
+puts statistics.join("\n").yellow
+puts "\nCSV files created succesfully!".black.on_green

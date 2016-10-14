@@ -18,26 +18,24 @@ def query(query_url, access_token)
   response = http.request(req)
 
   if response.code.to_i == 401
-    print '[ERR] This access token is invalid or has been revoked by the user.'.on_red
-    exit
+    abort '[ERR] This access token is invalid or has been revoked by the user.'.on_red
   end
 
   JSON.parse(response.body)
 end
 
 def get_user_choice(collection, message)
-  print "#{message}\n".magenta
+  puts message.to_s.magenta
 
   collection.each_with_index do |item, index|
-    print((index + 1).to_s.light_red + " )- #{item['name']}\n".yellow)
+    puts((index + 1).to_s.light_red + " )- #{item['name']}".yellow)
   end
 
-  print "\n> Select an item from the list: ".light_blue
+  print '> Select an item from the list: '.light_blue
 
   selected_index = gets.chomp.to_i - 1
   if selected_index < 0 || collection[selected_index].nil?
-    print '[ERR] Please enter a valid item number!'.on_red
-    exit
+    abort '[ERR] Please enter a valid item number!'.on_red
   end
 
   collection[selected_index]
@@ -109,16 +107,16 @@ def import_views_from_yml_file(db_connection, file_name)
     begin
       db_connection.create_or_replace_view(view['name'].strip, view['query'].strip)
     rescue Sequel::DatabaseError
-      print "[ERR] There is an error in this query:\n".white.on_red
-      print "\tName :".cyan + " #{view['name']}\n"
-      print "\tQuery:".cyan + " #{view['query'].strip}\n"
-      print "\tError:".cyan + " #{$ERROR_INFO.to_s[23..-1]}\n"
+      puts '[ERR] There is an error in this query:'.white.on_red
+      puts "\tName : ".cyan + view['name']
+      puts "\tQuery: ".cyan + view['query'].strip
+      puts "\tError: ".cyan + $ERROR_INFO.to_s[23..-1]
     end
   end
   fail_views_count = views.length - db_connection.views.length
-  print "DB Views -> Total  :#{views.length}\n".yellow + \
-        "\t    Created:#{db_connection.views.length}\n".yellow + \
-        "\t    Fail   :#{fail_views_count}\n".yellow
+  puts "DB Views -> Total  :#{views.length}\n".yellow + \
+       "\t    Created:#{db_connection.views.length}\n".yellow + \
+       "\t    Fail   :#{fail_views_count}".yellow
 end
 
 def open_database(database_path)
