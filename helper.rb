@@ -2,7 +2,7 @@ require 'uri'
 require 'json'
 require 'net/https'
 require 'yaml'
-require 'english'
+require 'English'
 
 require 'sequel'
 require 'sqlite3'
