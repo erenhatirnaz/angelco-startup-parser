@@ -61,17 +61,17 @@ def create_and_open_database(database_path)
   db_connection = Sequel.connect("sqlite://#{database_path}")
 
   db_connection.create_table(:locations) do
-    primary_key :id
+    column :id, :integer, primary_key: true
     column :name, :text, null: false
   end
 
   db_connection.create_table(:markets) do
-    primary_key :id
+    column :id, :integer, primary_key: true
     column :name, :text, null: false
   end
 
   db_connection.create_table(:startups) do
-    primary_key :id
+    column :id, :integer, primary_key: true
     column :name, :text, null: false
     column :description, :text
     column :website_url, :text
