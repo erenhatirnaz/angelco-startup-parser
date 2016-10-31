@@ -69,7 +69,7 @@ database_directory_name = generate_database_directory_name(market_tag_name)
 database_path = "#{database_directory_name}/database.sqlite"
 Dir.mkdir(database_directory_name)
 
-create_and_open_database(database_path)
+DB = create_and_open_database(database_path)
 
 market_startups = query("https://api.angel.co/1/tags/#{market_tag_id}/startups", ACCESS_TOKEN)
 
@@ -78,44 +78,50 @@ hidden_startup_count = 0
 
 progressbar = ProgressBar.create(format: '%a <%B> %p%% %t', total: last_page)
 
-last_page.times do |current_page|
-  market_startups = query("https://api.angel.co/1/tags/#{market_tag_id}/startups?page=#{current_page + 1}",
-                          ACCESS_TOKEN)
+begin
+  last_page.times do |current_page|
+    market_startups = query("https://api.angel.co/1/tags/#{market_tag_id}/startups?page=#{current_page + 1}",
+                            ACCESS_TOKEN)
 
-  market_startups['startups'].each do |item|
-    if item['hidden']
-      hidden_startup_count += 1
-      next
+    market_startups['startups'].each do |item|
+      if item['hidden']
+        hidden_startup_count += 1
+        next
+      end
+
+      next unless Startup.where(name: item['name'].strip).first.nil?
+
+      startup_description = item['high_concept'].strip if item['high_concept']
+
+      startup = Startup.create(id: item['id'],
+                               name: item['name'].strip,
+                               description: startup_description,
+                               website_url: item['company_url'],
+                               logo_url: item['logo_url'],
+                               reference: item['angellist_url'],
+                               quality: item['quality'],
+                               follower_count: item['follower_count'])
+
+      item['markets'].each do |mrkt|
+        next if mrkt['id'] == market_tag_id && !include_main_market_tag
+        market_name = mrkt['display_name'].strip
+        market = Market.where(name: market_name).first || Market.create(id: mrkt['id'], name: market_name)
+        startup.add_market(market)
+      end
+
+      item['locations'].each do |lctn|
+        location_name = lctn['display_name']
+        location = Location.where(name: location_name).first || Location.create(id: lctn['id'], name: location_name)
+        startup.add_location(location)
+      end
     end
 
-    next unless Startup.where(name: item['name'].strip).first.nil?
-
-    startup_description = item['high_concept'].strip if item['high_concept']
-
-    startup = Startup.create(id: item['id'],
-                             name: item['name'].strip,
-                             description: startup_description,
-                             website_url: item['company_url'],
-                             logo_url: item['logo_url'],
-                             reference: item['angellist_url'],
-                             quality: item['quality'],
-                             follower_count: item['follower_count'])
-
-    item['markets'].each do |mrkt|
-      next if mrkt['id'] == market_tag_id && !include_main_market_tag
-      market_name = mrkt['display_name'].strip
-      market = Market.where(name: market_name).first || Market.create(id: mrkt['id'], name: market_name)
-      startup.add_market(market)
-    end
-
-    item['locations'].each do |lctn|
-      location_name = lctn['display_name']
-      location = Location.where(name: location_name).first || Location.create(id: lctn['id'], name: location_name)
-      startup.add_location(location)
-    end
+    progressbar.increment
   end
-
-  progressbar.increment
+rescue => exception
+  DB.disconnect
+  delete_directory(database_directory_name)
+  abort "[ERR] An error occurred: #{exception}".on_red
 end
 
 statistics = []

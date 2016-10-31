@@ -57,6 +57,11 @@ def generate_database_directory_name(market_tag_name)
   database_directory_name
 end
 
+def delete_directory(directory_name)
+  Dir.glob("#{directory_name}/**") { |file_name| File.delete(file_name) }
+  Dir.delete(directory_name)
+end
+
 def create_and_open_database(database_path)
   db_connection = Sequel.connect("sqlite://#{database_path}")
 
@@ -97,6 +102,8 @@ def create_and_open_database(database_path)
   import_views_from_yml_file(db_connection, views_file)
 
   Dir['./models/*.rb'].each { |model| require model }
+
+  db_connection
 end
 
 def import_views_from_yml_file(db_connection, file_name)
