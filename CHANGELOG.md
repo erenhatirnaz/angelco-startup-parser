@@ -1,5 +1,18 @@
 # Change Log
 
+## 2.1.0
+### Bugfixes:
+* [Issue #1](https://bitbucket.org/erenhatirnaz/angel.co-startup-parser/issues/1):
+  Several properties mustn't contains whitespaces on both sides.
+* [Issue #3](https://bitbucket.org/erenhatirnaz/angel.co-startup-parser/issues/3):
+  `startup_id` and `location_id` can be same sometimes. 
+### Proposals:
+* [Issue #2](https://bitbucket.org/erenhatirnaz/angel.co-startup-parser/issues/2):
+  If get an error during database creation, this database directory have to be
+  deleted.
+* [Issue #4](https://bitbucket.org/erenhatirnaz/angel.co-startup-parser/issues/4):
+  Console output methods need refactor.
+
 ## 2.0.2
 ### Hotfixes:
 * [Issue #6](https://bitbucket.org/erenhatirnaz/angel.co-startup-parser/issues/6):
