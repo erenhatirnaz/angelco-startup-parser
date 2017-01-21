@@ -7,3 +7,6 @@ MethodLength:
 
 AbcSize:
     Max: 50
+
+BlockLength:
+    Enabled: false
