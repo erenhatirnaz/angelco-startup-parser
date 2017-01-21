@@ -106,13 +106,13 @@ begin
         next if mrkt['id'] == market_tag_id && !include_main_market_tag
         market_name = mrkt['display_name'].strip
         market = Market.where(name: market_name).first || Market.create(id: mrkt['id'], name: market_name)
-        startup.add_market(market)
+        startup.add_market(market) unless startup.markets.include?(market)
       end
 
       item['locations'].each do |lctn|
         location_name = lctn['display_name']
         location = Location.where(name: location_name).first || Location.create(id: lctn['id'], name: location_name)
-        startup.add_location(location)
+        startup.add_location(location) unless startup.locations.include?(location)
       end
     end
 
