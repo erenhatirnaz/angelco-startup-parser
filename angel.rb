@@ -34,7 +34,7 @@ parser.parse!
 
 unless File.exist?('config.yml')
   abort "[ERR] config.yml file not found!\n".on_red\
-      + "Please, rename to file name 'config.example.yaml' to 'config.yaml' and edit that file by yourself.".on_red
+      + "Please, rename to file name 'config.example.yml' to 'config.yml' and edit that file by yourself.".on_red
 end
 
 config = YAML.load_file('config.yml')
