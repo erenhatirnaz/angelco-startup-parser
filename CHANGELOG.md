@@ -1,11 +1,20 @@
 # Change Log
 
+## 2.1.1
+### Bugfixes:
+* [Issue #3](https://bitbucket.org/erenhatirnaz/angel.co-startup-parser/issues/3#comment-33719502):
+  `startup_id` and `location_id` can be same sometimes.
+    * Added new controls to prevent data repetition.
+### Notable changes:
+* Fixed a typo in error message.
+* Reordered Gemfile and forgotten Gemfile.lock updated.
+
 ## 2.1.0
 ### Bugfixes:
 * [Issue #1](https://bitbucket.org/erenhatirnaz/angel.co-startup-parser/issues/1):
   Several properties mustn't contains whitespaces on both sides.
 * [Issue #3](https://bitbucket.org/erenhatirnaz/angel.co-startup-parser/issues/3):
-  `startup_id` and `location_id` can be same sometimes. 
+  `startup_id` and `location_id` can be same sometimes.
 ### Proposals:
 * [Issue #2](https://bitbucket.org/erenhatirnaz/angel.co-startup-parser/issues/2):
   If get an error during database creation, this database directory have to be
