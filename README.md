@@ -15,9 +15,10 @@ their functionality.**
 * Custom database views
 
 ## Motivation
-The motivation of this project came from PhD Aslı Boyraz Yazagan, a lecturer at
-Rize University. She asked me to develop these tools to use in academic
-conference (ICITS - [International Conference on Information Technology and
+The motivation of this project came from [PhD Aslı Boyraz
+Yazagan](https://avesis.erdogan.edu.tr/asli.yazagan), a lecturer at Rize
+University. She asked me to develop these tools to use in academic conference
+(ICITS - [International Conference on Information Technology and
 Science](http://www.icits.org/)). We used these tools to pull startups operating
 in the internet of things market, other markets they are related to, and their
 locations and convert them into a graph. You can see the result of the study
