@@ -6,7 +6,7 @@
   and creates a SQLite database.
 * `sqlite_to_csv_converter.rb`: This CLI creates two csv file (nodes.csv,
   edges.csv) with fetched data by `angel.rb` for use in
-  [https://graphcommons.com](GraphCommons).
+  [GraphCommons](https://graphcommons.com).
 
 **Current Status: angel.co is not exposing it's api, so these tools have lost
 their functionality.**
@@ -17,13 +17,13 @@ their functionality.**
 ## Motivation
 The motivation of this project came from PhD Aslı Boyraz Yazagan, a lecturer at
 Rize University. She asked me to develop these tools to use in academic
-conference (ICITS - [http://www.icits.org/](International Conference on
-Information Technology and Science)). We used these tools to pull startups
-operating in the internet of things market, other markets they are related to,
-and their locations and convert them into a graph. You can see the result of the
-study below:
+conference (ICITS - [International Conference on Information Technology and
+Science](http://www.icits.org/)). We used these tools to pull startups operating
+in the internet of things market, other markets they are related to, and their
+locations and convert them into a graph. You can see the result of the study
+below:
 
-[https://graphcommons.com/graphs/8da5327d-7829-4dfe-b60b-4c0bda956b2a](![thumbnail](graphcommons-thumbnail.png))
+[![thumbnail](graphcommons-thumbnail.png)](https://graphcommons.com/graphs/8da5327d-7829-4dfe-b60b-4c0bda956b2a)
 
 ## Requirements
 * Ruby >= 2.2.x
