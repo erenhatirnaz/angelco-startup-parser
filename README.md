@@ -44,11 +44,11 @@ First of all, rename the following files:
 
 and edit those files by yourself.
 
-### Create database
+### 3. Create database
 Run `ruby angel.rb -m "[Market Tag]"` or just `ruby angel.rb` command, and then
 follow the steps.
 
-## Convert database to CSV files (for import GraphCommons)
+### 4. Convert database to CSV files (for import GraphCommons)
 ```bash
 $ ruby sqlite_to_csv_converter.rb -d [Database directory]
 ```
