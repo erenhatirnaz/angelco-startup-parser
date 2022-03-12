@@ -8,7 +8,7 @@
   edges.csv) with fetched data by `angel.rb` for use in
   [GraphCommons](https://graphcommons.com).
 
-**Current Status: angel.co is not exposing it's api, so these tools have lost
+**Current Status: Angel.co doesn't expose its api anymore, so these tools have lost
 their functionality.**
 
 ## Features
